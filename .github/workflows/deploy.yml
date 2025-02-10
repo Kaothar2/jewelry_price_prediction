@@ -3,10 +3,7 @@ name: Deploy Streamlit App
 on:
   push:
     branches:
-      - main  # Runs the workflow when code is pushed to main
-  pull_request:
-    branches:
-      - main  # Runs the workflow when a PR is made to main
+      - main  # Trigger the workflow only on pushes to the `main` branch
 
 jobs:
   deploy:
@@ -14,17 +11,21 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v2
         with:
-          python-version: '3.9'
+          python-version: '3.8'
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt  # Install dependencies from requirements.txt
 
-      - name: Deploy Streamlit app
-        run: streamlit run streamlit_app.py
+      - name: Install Streamlit
+        run: pip install streamlit  # Explicitly install Streamlit
 
+      - name: Deploy with Streamlit
+        run: |
+          streamlit run streamlit_app.py  # Run the Streamlit app
