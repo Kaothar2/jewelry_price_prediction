@@ -1,6 +1,9 @@
 import joblib
 import pandas as pd
 import streamlit as st
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
 
 # Load the pre-trained model pipeline (this includes imputation, encoding, and the regressor)
 xgb_pipe = joblib.load("Xgboost_model.pkl")
@@ -39,8 +42,18 @@ st.write("Input DataFrame:", input_df)
 # Make predictions
 if st.button("Predict Price :moneybag:"):
     try:
-        # Directly use the pre-trained pipeline for prediction
-        predicted_price = xgb_pipe.predict(input_df)[0]  # Using the pre-trained pipeline
+        # Check if OneHotEncoder is part of the pipeline and fitted properly
+        column_transformer = xgb_pipe.named_steps['preprocessor']  # Replace with actual step name
+        one_hot_encoder = column_transformer.transformers_[0][1]  # Extract OneHotEncoder
+
+        # Ensure the encoder is fitted correctly, if necessary
+        one_hot_encoder.handle_unknown = 'ignore'
+
+        # Transform the input data using the encoder
+        input_transformed = column_transformer.transform(input_df)
+        
+        # Predict using the entire pipeline
+        predicted_price = xgb_pipe.predict(input_transformed)[0]  # Using the pre-trained pipeline
 
         st.success(f"Estimated Price: ${predicted_price:.2f}")
     except Exception as e:
