@@ -5,7 +5,7 @@ import pandas as pd
 # Load the trained XGBoost model & encoders
 @st.cache_resource
 def load_model():
-    with open("xgboost_model.pkl", "rb") as file:
+    with open("Xgboost_model.pkl", "rb") as file:
         model, label_encoders = pickle.load(file)
     return model, label_encoders
 
