@@ -1,29 +1,22 @@
 import joblib
+import requests
 import pandas as pd
 import streamlit as st
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
-import requests
-from io import BytesIO
+from sklearn.pipeline import Pipeline
+from sklearn.impute import SimpleImputer
 
-# Function to download model from GitHub
-def download_model_from_github(model_url):
-    response = requests.get(model_url)
-    if response.status_code == 200:
-        model_file = BytesIO(response.content)
-        return joblib.load(model_file)
-    else:
-        raise Exception(f"Error downloading model: {response.status_code}")
+# URL to the raw model file on GitHub
+model_url = "https://github.com/your_username/your_repo/raw/main/models/Xgboost_model.pkl"
 
-# URL to your model file on GitHub (raw link)
-model_url = "Xgboost_model.pkl"
+# Download the model from GitHub
+response = requests.get(model_url)
+with open("Xgboost_model.pkl", "wb") as f:
+    f.write(response.content)
 
-# Load the model from GitHub
-try:
-    xgb_pipe = Xgboost_model.pkl
-    st.success("Model loaded successfully.")
-except Exception as e:
-    st.error(f"Error loading model: {str(e)}")
+# Load the model with joblib
+xgb_pipe = joblib.load("Xgboost_model.pkl")
 
 # Define possible categories as they were seen during training
 jewelry_types = ["bracelet", "brooch", "earring", "necklace", "pendant", "ring", "souvenir", "stud"]
@@ -58,7 +51,9 @@ one_hot_encoder = OneHotEncoder(handle_unknown='ignore', sparse_output=True)
 
 # Column transformer for encoding categorical columns (OneHot)
 column_transformer = ColumnTransformer(
-    transformers=[("one_hot", one_hot_encoder, ['Category', 'Target_Gender', 'Main_Gem', 'Main_Color', 'Main_Metal'])],
+    transformers=[
+        ("one_hot", one_hot_encoder, ['Category', 'Target_Gender', 'Main_Gem', 'Main_Color', 'Main_Metal'])
+    ],
     remainder='passthrough'
 )
 
