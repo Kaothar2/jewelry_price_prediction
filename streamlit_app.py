@@ -2,9 +2,14 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import joblib
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder
+from xgboost import XGBRegressor
 
-# Load trained model
-model = joblib.load("Xgboost_model.pkl")
+# Load trained model pipeline (this includes imputation, encoding, and the regressor)
+xgb_pipe = joblib.load("XGBoost_pipeline.pkl")
 
 # Define one-hot encoding categories
 jewelry_types = ["bracelet", "brooch", "earring", "necklace", "pendant", "ring", "souvenir", "stud"]
@@ -37,7 +42,7 @@ input_data["remainder__x1"] = remainder_x1
 # Convert to DataFrame
 input_df = pd.DataFrame([input_data])
 
-# Predict price
+# Use the pipeline for prediction
 if st.button("Predict Price :moneybag:"):
-    predicted_price = model.predict(input_df)[0]  # Indented correctly here
+    predicted_price = xgb_pipe.predict(input_df)[0]  # Use the entire pipeline for prediction
     st.success(f"Estimated Price: ${predicted_price:.2f}")
