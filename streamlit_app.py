@@ -1,24 +1,14 @@
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
 import joblib
 import pandas as pd
 import streamlit as st
 
-# Load trained model pipeline (this includes imputation, encoding, and the regressor)
+# Load the pre-trained model pipeline (this includes imputation, encoding, and the regressor)
 xgb_pipe = joblib.load("Xgboost_model.pkl")
 
 # Define possible categories as they were seen during training
 jewelry_types = ["bracelet", "brooch", "earring", "necklace", "pendant", "ring", "souvenir", "stud"]
 genders = ["f", "m"]
 gemstones = ["rhodolite", "ruby", "sapphire", "sapphire_geothermal", "sitall", "spinel", "topaz", "tourmaline", "turquoise"]
-
-categories = ["bracelet", "brooch", "earring", "necklace", "pendant", "ring", "souvenir", "stud"]
-main_gems = ["rhodolite", "ruby", "sapphire", "sapphire_geothermal", "sitall", "spinel", "topaz", "tourmaline", "turquoise"]
-main_colors = ["red", "blue", "green", "black", "white"]  # Modify with actual training colors
-main_metals = ["gold", "silver", "platinum"]  # Modify with actual training metals
-target_genders = ["f", "m"]
 
 # Streamlit UI
 st.title("Jewelry Price Prediction App :gem:")
@@ -43,29 +33,15 @@ input_data = {
 # Convert input data to DataFrame
 input_df = pd.DataFrame([input_data])
 
-# Create a pipeline that handles the OneHotEncoder for categorical features
-one_hot_encoder = OneHotEncoder(handle_unknown='ignore', sparse_output=True)
-
-# Column transformer for encoding categorical columns (OneHot)
-column_transformer = ColumnTransformer(
-    transformers=[
-        ("one_hot", one_hot_encoder, ['Category', 'Target_Gender', 'Main_Gem', 'Main_Color', 'Main_Metal'])
-    ],
-    remainder='passthrough'
-)
-
-# Load the pre-trained model pipeline
-xgb_pipe = joblib.load("Xgboost_model.pkl")  # Ensure this is the pipeline you want to use
-
 # Display input DataFrame for debugging
 st.write("Input DataFrame:", input_df)
 
 # Make predictions
 if st.button("Predict Price :moneybag:"):
     try:
-        # Apply transformations and predict using the pipeline
-        input_transformed = column_transformer.transform(input_df)
-        predicted_price = xgb_pipe.predict(input_transformed)[0]
+        # Directly use the pre-trained pipeline for prediction
+        predicted_price = xgb_pipe.predict(input_df)[0]  # Using the pre-trained pipeline
+
         st.success(f"Estimated Price: ${predicted_price:.2f}")
     except Exception as e:
         st.error(f"Error: {str(e)}")
