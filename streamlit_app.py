@@ -9,7 +9,7 @@ from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder
 from xgboost import XGBRegressor
 
 # Load trained model pipeline (this includes imputation, encoding, and the regressor)
-xgb_pipe = joblib.load("XGBoost_pipeline.pkl")
+xgb_pipe = joblib.load("Xgboost_model.pkl")
 
 # Define one-hot encoding categories
 jewelry_types = ["bracelet", "brooch", "earring", "necklace", "pendant", "ring", "souvenir", "stud"]
