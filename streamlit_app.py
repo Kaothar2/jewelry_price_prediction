@@ -26,18 +26,20 @@ selected_gender = st.radio("Select Gender", genders)
 selected_gemstone = st.selectbox("Select Gemstone", gemstones)
 remainder_x1 = st.number_input("Enter Other Feature (e.g., Weight or Size)", min_value=0.0, step=0.1)
 
-# Convert inputs to one-hot encoding
-input_data = {f"One_hot__x0_jewelry.{j}": 0 for j in jewelry_types}
-input_data[f"One_hot__x0_jewelry.{selected_jewelry}"] = 1
-gender_data = {f"One_hot__x2_{g}": 0 for g in genders}
-gender_data[f"One_hot__x2_{selected_gender}"] = 1
-gemstone_data = {f"One_hot__x5_{g}": 0 for g in gemstones}
-gemstone_data[f"One_hot__x5_{selected_gemstone}"] = 1
+# Define missing columns with default values
+input_data = {
+    'Category': 'Unknown',  # Placeholder value
+    'Target_Gender': selected_gender,  # User input for gender
+    'Main_Color': 'Unknown',  # Placeholder value
+    'Main_Gem': selected_gemstone,  # User input for gemstone
+    'Main_Metal': 'Unknown',  # Placeholder value
+    'Brand_ID': 0,  # Placeholder value for numerical column
+}
 
-# Combine input features
-input_data.update(gender_data)
-input_data.update(gemstone_data)
-input_data["remainder__x1"] = remainder_x1
+# One-hot encoding for jewelry type
+jewelry_types = ["bracelet", "brooch", "earring", "necklace", "pendant", "ring", "souvenir", "stud"]
+input_data.update({f"One_hot__x0_jewelry.{j}": 0 for j in jewelry_types})
+input_data[f"One_hot__x0_jewelry.{selected_jewelry}"] = 1
 
 # Convert to DataFrame
 input_df = pd.DataFrame([input_data])
