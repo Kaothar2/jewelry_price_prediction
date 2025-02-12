@@ -1,9 +1,6 @@
 import joblib
 import pandas as pd
 import streamlit as st
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
 
 # Load the pre-trained model pipeline (this includes imputation, encoding, and the regressor)
 xgb_pipe = joblib.load("Xgboost_model.pkl")
@@ -42,19 +39,26 @@ st.write("Input DataFrame:", input_df)
 # Make predictions
 if st.button("Predict Price :moneybag:"):
     try:
-        # Check if OneHotEncoder is part of the pipeline and fitted properly
-        column_transformer = xgb_pipe.named_steps['preprocessor']  # Replace with actual step name
-        one_hot_encoder = column_transformer.transformers_[0][1]  # Extract OneHotEncoder
-
-        # Ensure the encoder is fitted correctly, if necessary
-        one_hot_encoder.handle_unknown = 'ignore'
-
-        # Transform the input data using the encoder
-        input_transformed = column_transformer.transform(input_df)
+        # Print out the pipeline steps to check structure
+        st.write("Pipeline Steps:", xgb_pipe.named_steps)
         
-        # Predict using the entire pipeline
-        predicted_price = xgb_pipe.predict(input_transformed)[0]  # Using the pre-trained pipeline
-
-        st.success(f"Estimated Price: ${predicted_price:.2f}")
+        # Assuming the encoding step is part of the pipeline
+        # Extract the OneHotEncoder step (you may need to adjust the step name if different)
+        column_transformer = xgb_pipe.named_steps.get('columntransformer', None)
+        if column_transformer is not None:
+            one_hot_encoder = column_transformer.transformers_[0][1]  # Extract OneHotEncoder
+            
+            # Ensure the encoder handles unknown categories
+            one_hot_encoder.handle_unknown = 'ignore'
+        
+            # Transform the input data using the encoder
+            input_transformed = column_transformer.transform(input_df)
+            
+            # Predict using the entire pipeline
+            predicted_price = xgb_pipe.predict(input_transformed)[0]  # Using the pre-trained pipeline
+            st.success(f"Estimated Price: ${predicted_price:.2f}")
+        else:
+            st.error("ColumnTransformer step not found in the pipeline.")
+            
     except Exception as e:
         st.error(f"Error: {str(e)}")
