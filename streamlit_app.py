@@ -39,5 +39,5 @@ input_df = pd.DataFrame([input_data])
 
 # Predict price
 if st.button("Predict Price :moneybag:"):
-predicted_price = model.predict(input_df)[0]
-st.success(f"Estimated Price: ${predicted_price:.2f}")
+    predicted_price = model.predict(input_df)[0]  # Indented correctly here
+    st.success(f"Estimated Price: ${predicted_price:.2f}")
