@@ -1,11 +1,12 @@
 import streamlit as st
 import pickle
 import pandas as pd
+import numpy as np
 
 # Load the trained XGBoost model & encoders
 @st.cache_resource
 def load_model():
-    with open("Xgboost_model.pkl", "rb") as file:
+    with open("xgboost_model.pkl", "rb") as file:
         model, label_encoders = pickle.load(file)
     return model, label_encoders
 
@@ -22,16 +23,30 @@ main_color = st.selectbox("Select Main Color", label_encoders["Main_Color"].clas
 main_gem = st.selectbox("Select Main Gemstone", label_encoders["Main_Gem"].classes_)
 main_metal = st.selectbox("Select Main Metal", label_encoders["Main_Metal"].classes_)
 
+# Additional Numeric Inputs (if applicable)
+weight = st.number_input("Enter Weight (grams)", min_value=0.1, step=0.1)
+size = st.number_input("Enter Size (if applicable)", min_value=0.0, step=0.1)
+
 # Predict Button
 if st.button("Predict Price"):
-    # Convert user inputs using Label Encoders
-    input_data = pd.DataFrame([[category, target_gender, main_color, main_gem, main_metal]],
-                              columns=["Category", "Target_Gender", "Main_Color", "Main_Gem", "Main_Metal"])
-    
-    for col in input_data.columns:
-        input_data[col] = label_encoders[col].transform(input_data[col])
+    try:
+        # Convert user inputs using Label Encoders
+        input_data = pd.DataFrame([[category, target_gender, main_color, main_gem, main_metal]],
+                                  columns=["Category", "Target_Gender", "Main_Color", "Main_Gem", "Main_Metal"])
+        
+        for col in input_data.columns:
+            input_data[col] = label_encoders[col].transform(input_data[col])
 
-    # Make prediction
-    predicted_price = model.predict(input_data)[0]
-    
-    st.success(f"Estimated Price: **${predicted_price:.2f}** 💰")
+        # Add numerical features
+        input_data["Weight"] = weight
+        input_data["Size"] = size
+
+        # Make prediction
+        predicted_price = model.predict(input_data)[0]
+
+        # Display result
+        st.success(f"Estimated Jewelry Price: ${predicted_price:,.2f}")
+
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
+
