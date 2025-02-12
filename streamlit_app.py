@@ -55,7 +55,7 @@ column_transformer = ColumnTransformer(
 )
 
 # Load the pre-trained model pipeline
-xgb_pipe = joblib.load("XGBoost_pipeline.pkl")  # Ensure this is the pipeline you want to use
+xgb_pipe = joblib.load("Xgboost_model.pkl")  # Ensure this is the pipeline you want to use
 
 # Display input DataFrame for debugging
 st.write("Input DataFrame:", input_df)
