@@ -16,8 +16,8 @@ gemstones = ["rhodolite", "ruby", "sapphire", "sapphire_geothermal", "sitall", "
 
 categories = ["bracelet", "brooch", "earring", "necklace", "pendant", "ring", "souvenir", "stud"]
 main_gems = ["rhodolite", "ruby", "sapphire", "sapphire_geothermal", "sitall", "spinel", "topaz", "tourmaline", "turquoise"]
-main_colors = ["red", "blue", "green", "black", "white"]
-main_metals = ["gold", "silver", "platinum"]
+main_colors = ["red", "blue", "green", "black", "white"]  # Modify with actual training colors
+main_metals = ["gold", "silver", "platinum"]  # Modify with actual training metals
 target_genders = ["f", "m"]
 
 # Streamlit UI
@@ -44,7 +44,7 @@ input_data = {
 input_df = pd.DataFrame([input_data])
 
 # Create a pipeline that handles the OneHotEncoder for categorical features
-one_hot_encoder = OneHotEncoder(handle_unknown='ignore', sparse=False)
+one_hot_encoder = OneHotEncoder(handle_unknown='ignore', sparse_output=True)
 
 # Column transformer for encoding categorical columns (OneHot)
 column_transformer = ColumnTransformer(
@@ -54,7 +54,7 @@ column_transformer = ColumnTransformer(
     remainder='passthrough'
 )
 
-# Define your model pipeline including the column transformer
+# Load the pre-trained model pipeline
 xgb_pipe = joblib.load("XGBoost_pipeline.pkl")  # Ensure this is the pipeline you want to use
 
 # Display input DataFrame for debugging
@@ -68,5 +68,4 @@ if st.button("Predict Price :moneybag:"):
         predicted_price = xgb_pipe.predict(input_transformed)[0]
         st.success(f"Estimated Price: ${predicted_price:.2f}")
     except Exception as e:
-        st.error(f"Error: {e}")
-
+        st.error(f"Error: {str(e)}")
