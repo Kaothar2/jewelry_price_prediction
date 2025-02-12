@@ -1,12 +1,10 @@
-import streamlit as st
-import numpy as np
-import pandas as pd
-import joblib
-from sklearn.pipeline import Pipeline
-from sklearn.compose import ColumnTransformer
-from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
-from xgboost import XGBRegressor
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.impute import SimpleImputer
+import joblib
+import pandas as pd
+import streamlit as st
 
 # Load trained model pipeline (this includes imputation, encoding, and the regressor)
 xgb_pipe = joblib.load("Xgboost_model.pkl")
@@ -18,8 +16,8 @@ gemstones = ["rhodolite", "ruby", "sapphire", "sapphire_geothermal", "sitall", "
 
 categories = ["bracelet", "brooch", "earring", "necklace", "pendant", "ring", "souvenir", "stud"]
 main_gems = ["rhodolite", "ruby", "sapphire", "sapphire_geothermal", "sitall", "spinel", "topaz", "tourmaline", "turquoise"]
-main_colors = ["red", "blue", "green", "black", "white"]  # Modify with actual training colors
-main_metals = ["gold", "silver", "platinum"]  # Modify with actual training metals
+main_colors = ["red", "blue", "green", "black", "white"]
+main_metals = ["gold", "silver", "platinum"]
 target_genders = ["f", "m"]
 
 # Streamlit UI
@@ -32,7 +30,7 @@ selected_gender = st.radio("Select Gender", genders)
 selected_gemstone = st.selectbox("Select Gemstone", gemstones)
 remainder_x1 = st.number_input("Enter Other Feature (e.g., Weight or Size)", min_value=0.0, step=0.1)
 
-# Use the actual categories as the default for non-user inputs
+# User input data
 input_data = {
     'Category': selected_jewelry,  # From user input
     'Target_Gender': selected_gender,  # From user input
@@ -42,21 +40,33 @@ input_data = {
     'Brand_ID': 0,  # Placeholder value for numerical column
 }
 
-# One-hot encoding for jewelry type
-input_data.update({f"One_hot__x0_jewelry.{j}": 0 for j in jewelry_types})
-input_data[f"One_hot__x0_jewelry.{selected_jewelry}"] = 1
-
-# Convert to DataFrame
+# Convert input data to DataFrame
 input_df = pd.DataFrame([input_data])
 
-# Display input DataFrame columns for debugging
-st.write("Input DataFrame Columns:", input_df.columns)
+# Create a pipeline that handles the OneHotEncoder for categorical features
+one_hot_encoder = OneHotEncoder(handle_unknown='ignore', sparse=False)
 
-# Handle unknown categories in the OneHotEncoder by setting handle_unknown='ignore'
+# Column transformer for encoding categorical columns (OneHot)
+column_transformer = ColumnTransformer(
+    transformers=[
+        ("one_hot", one_hot_encoder, ['Category', 'Target_Gender', 'Main_Gem', 'Main_Color', 'Main_Metal'])
+    ],
+    remainder='passthrough'
+)
+
+# Define your model pipeline including the column transformer
+xgb_pipe = joblib.load("XGBoost_pipeline.pkl")  # Ensure this is the pipeline you want to use
+
+# Display input DataFrame for debugging
+st.write("Input DataFrame:", input_df)
+
+# Make predictions
 if st.button("Predict Price :moneybag:"):
     try:
-        # Predict using the pipeline with 'handle_unknown="ignore"'
-        predicted_price = xgb_pipe.predict(input_df)[0]
+        # Apply transformations and predict using the pipeline
+        input_transformed = column_transformer.transform(input_df)
+        predicted_price = xgb_pipe.predict(input_transformed)[0]
         st.success(f"Estimated Price: ${predicted_price:.2f}")
-    except ValueError as e:
+    except Exception as e:
         st.error(f"Error: {e}")
+
