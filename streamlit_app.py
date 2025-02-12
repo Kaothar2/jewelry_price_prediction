@@ -39,26 +39,15 @@ st.write("Input DataFrame:", input_df)
 # Make predictions
 if st.button("Predict Price :moneybag:"):
     try:
-        # Print out the pipeline steps to check structure
-        st.write("Pipeline Steps:", xgb_pipe.named_steps)
+        # Ensure we are correctly accessing the model pipeline steps
+        preprocessor = xgb_pipe.named_steps['preprocessor']  # Assuming the preprocessor is named 'preprocessor'
         
-        # Assuming the encoding step is part of the pipeline
-        # Extract the OneHotEncoder step (you may need to adjust the step name if different)
-        column_transformer = xgb_pipe.named_steps.get('columntransformer', None)
-        if column_transformer is not None:
-            one_hot_encoder = column_transformer.transformers_[0][1]  # Extract OneHotEncoder
-            
-            # Ensure the encoder handles unknown categories
-            one_hot_encoder.handle_unknown = 'ignore'
+        # Apply the preprocessing steps
+        input_transformed = preprocessor.transform(input_df)
         
-            # Transform the input data using the encoder
-            input_transformed = column_transformer.transform(input_df)
-            
-            # Predict using the entire pipeline
-            predicted_price = xgb_pipe.predict(input_transformed)[0]  # Using the pre-trained pipeline
-            st.success(f"Estimated Price: ${predicted_price:.2f}")
-        else:
-            st.error("ColumnTransformer step not found in the pipeline.")
-            
+        # Predict using the entire pipeline
+        predicted_price = xgb_pipe.predict(input_transformed)[0]  # Using the pre-trained pipeline
+        st.success(f"Estimated Price: ${predicted_price:.2f}")
+    
     except Exception as e:
         st.error(f"Error: {str(e)}")
