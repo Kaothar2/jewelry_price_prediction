@@ -1,52 +1,43 @@
 import streamlit as st
-import pickle
-import pandas as pd
 import numpy as np
+import pandas as pd
+import joblib
 
-# Load the trained XGBoost model & encoders
-@st.cache_resource
-def load_model():
-    with open("xgboost_model.pkl", "rb") as file:
-        model, label_encoders = pickle.load(file)
-    return model, label_encoders
+# Load trained model
+model = joblib.load("Xgboost_model.pkl")
 
-model, label_encoders = load_model()
+# Define one-hot encoding categories
+jewelry_types = ["bracelet", "brooch", "earring", "necklace", "pendant", "ring", "souvenir", "stud"]
+genders = ["f", "m"]
+gemstones = ["rhodolite", "ruby", "sapphire", "sapphire_geothermal", "sitall", "spinel", "topaz", "tourmaline", "turquoise"]
 
 # Streamlit UI
-st.title("Jewelry Price Prediction App 💎")
-st.write("Enter jewelry details to predict the price.")
+st.title("Jewelry Price Prediction App :gem:")
+st.write("Enter jewelry details below to predict the price.")
 
 # User Inputs
-category = st.selectbox("Select Jewelry Category", label_encoders["Category"].classes_)
-target_gender = st.selectbox("Select Target Gender", label_encoders["Target_Gender"].classes_)
-main_color = st.selectbox("Select Main Color", label_encoders["Main_Color"].classes_)
-main_gem = st.selectbox("Select Main Gemstone", label_encoders["Main_Gem"].classes_)
-main_metal = st.selectbox("Select Main Metal", label_encoders["Main_Metal"].classes_)
+selected_jewelry = st.selectbox("Select Jewelry Type", jewelry_types)
+selected_gender = st.radio("Select Gender", genders)
+selected_gemstone = st.selectbox("Select Gemstone", gemstones)
+remainder_x1 = st.number_input("Enter Other Feature (e.g., Weight or Size)", min_value=0.0, step=0.1)
 
-# Additional Numeric Inputs (if applicable)
-weight = st.number_input("Enter Weight (grams)", min_value=0.1, step=0.1)
-size = st.number_input("Enter Size (if applicable)", min_value=0.0, step=0.1)
+# Convert inputs to one-hot encoding
+input_data = {f"One_hot__x0_jewelry.{j}": 0 for j in jewelry_types}
+input_data[f"One_hot__x0_jewelry.{selected_jewelry}"] = 1
+gender_data = {f"One_hot__x2_{g}": 0 for g in genders}
+gender_data[f"One_hot__x2_{selected_gender}"] = 1
+gemstone_data = {f"One_hot__x5_{g}": 0 for g in gemstones}
+gemstone_data[f"One_hot__x5_{selected_gemstone}"] = 1
 
-# Predict Button
-if st.button("Predict Price"):
-    try:
-        # Convert user inputs using Label Encoders
-        input_data = pd.DataFrame([[category, target_gender, main_color, main_gem, main_metal]],
-                                  columns=["Category", "Target_Gender", "Main_Color", "Main_Gem", "Main_Metal"])
-        
-        for col in input_data.columns:
-            input_data[col] = label_encoders[col].transform(input_data[col])
+# Combine input features
+input_data.update(gender_data)
+input_data.update(gemstone_data)
+input_data["remainder__x1"] = remainder_x1
 
-        # Add numerical features
-        input_data["Weight"] = weight
-        input_data["Size"] = size
+# Convert to DataFrame
+input_df = pd.DataFrame([input_data])
 
-        # Make prediction
-        predicted_price = model.predict(input_data)[0]
-
-        # Display result
-        st.success(f"Estimated Jewelry Price: ${predicted_price:,.2f}")
-
-    except Exception as e:
-        st.error(f"An error occurred: {e}")
-
+# Predict price
+if st.button("Predict Price :moneybag:"):
+predicted_price = model.predict(input_df)[0]
+st.success(f"Estimated Price: ${predicted_price:.2f}")
