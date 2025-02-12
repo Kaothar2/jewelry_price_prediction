@@ -5,7 +5,7 @@ import joblib
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder
+from sklearn.preprocessing import OneHotEncoder
 from xgboost import XGBRegressor
 
 # Load trained model pipeline (this includes imputation, encoding, and the regressor)
@@ -52,10 +52,11 @@ input_df = pd.DataFrame([input_data])
 # Display input DataFrame columns for debugging
 st.write("Input DataFrame Columns:", input_df.columns)
 
-# Use the pipeline for prediction
+# Handle unknown categories in the OneHotEncoder by setting handle_unknown='ignore'
 if st.button("Predict Price :moneybag:"):
     try:
-        predicted_price = xgb_pipe.predict(input_df)[0]  # Use the entire pipeline for prediction
+        # Predict using the pipeline with 'handle_unknown="ignore"'
+        predicted_price = xgb_pipe.predict(input_df)[0]
         st.success(f"Estimated Price: ${predicted_price:.2f}")
     except ValueError as e:
         st.error(f"Error: {e}")
