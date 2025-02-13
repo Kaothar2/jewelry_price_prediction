@@ -1,30 +1,28 @@
 import joblib
-import requests
 import pandas as pd
 import streamlit as st
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
 
-# URL to the raw model file on GitHub
-model_url = "https://github.com/your_username/your_repo/raw/main/models/Xgboost_model.pkl"
+# Load the model from the local directory
+@st.cache_resource
+def load_model():
+    model_path = "Xgboost_model.pkl"  # Ensure this file exists in the same directory as your script
+    try:
+        model = joblib.load(model_path)
+        return model
+    except FileNotFoundError:
+        st.error("Model file not found. Make sure Xgboost_model.pkl is in the correct directory.")
+        return None
 
-# Download the model from GitHub
-response = requests.get(model_url)
-with open("Xgboost_model.pkl", "wb") as f:
-    f.write(response.content)
+# Load the model
+xgb_pipe = load_model()
 
-# Load the model with joblib
-xgb_pipe = joblib.load("Xgboost_model.pkl")
-
-# Define possible categories as they were seen during training
+# Define input categories
 jewelry_types = ["bracelet", "brooch", "earring", "necklace", "pendant", "ring", "souvenir", "stud"]
 genders = ["f", "m"]
 gemstones = ["rhodolite", "ruby", "sapphire", "sapphire_geothermal", "sitall", "spinel", "topaz", "tourmaline", "turquoise"]
 
 # Streamlit UI
-st.title("Jewelry Price Prediction App :gem:")
+st.title("Jewelry Price Prediction App 💎")
 st.write("Enter jewelry details below to predict the price.")
 
 # User Inputs
@@ -33,39 +31,21 @@ selected_gender = st.radio("Select Gender", genders)
 selected_gemstone = st.selectbox("Select Gemstone", gemstones)
 remainder_x1 = st.number_input("Enter Other Feature (e.g., Weight or Size)", min_value=0.0, step=0.1)
 
-# User input data
+# Convert inputs to one-hot encoding format (ensure correct column names)
 input_data = {
-    'Category': selected_jewelry,  # From user input
-    'Target_Gender': selected_gender,  # From user input
-    'Main_Color': 'red',  # Placeholder or default value from training data
-    'Main_Gem': selected_gemstone,  # From user input
-    'Main_Metal': 'gold',  # Placeholder or default value from training data
-    'Brand_ID': 0,  # Placeholder value for numerical column
+    f"One_hot__x0_jewelry.{selected_jewelry}": 1,
+    f"One_hot__x0_gender.{selected_gender}": 1,
+    f"One_hot__x0_gemstone.{selected_gemstone}": 1,
+    "remainder_x1": remainder_x1
 }
 
-# Convert input data to DataFrame
+# Create DataFrame
 input_df = pd.DataFrame([input_data])
 
-# Create a pipeline that handles the OneHotEncoder for categorical features
-one_hot_encoder = OneHotEncoder(handle_unknown='ignore', sparse_output=True)
-
-# Column transformer for encoding categorical columns (OneHot)
-column_transformer = ColumnTransformer(
-    transformers=[
-        ("one_hot", one_hot_encoder, ['Category', 'Target_Gender', 'Main_Gem', 'Main_Color', 'Main_Metal'])
-    ],
-    remainder='passthrough'
-)
-
-# Display input DataFrame for debugging
-st.write("Input DataFrame:", input_df)
-
-# Make predictions
-if st.button("Predict Price :moneybag:"):
+# Ensure all necessary columns exist
+if xgb_pipe:
     try:
-        # Apply transformations and predict using the pipeline
-        input_transformed = column_transformer.fit_transform(input_df)
-        predicted_price = xgb_pipe.predict(input_transformed)[0]
-        st.success(f"Estimated Price: ${predicted_price:.2f}")
+        predicted_price = xgb_pipe.predict(input_df)[0]
+        st.success(f"Predicted Price: ${predicted_price:.2f}")
     except Exception as e:
-        st.error(f"Error: {str(e)}")
+        st.error(f"Prediction Error: {str(e)}")
