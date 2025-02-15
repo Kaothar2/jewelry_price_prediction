@@ -1,0 +1,2 @@
+mlartifacts/** filter=lfs diff=lfs merge=lfs -text
+mlflow_project/** filter=lfs diff=lfs merge=lfs -text
