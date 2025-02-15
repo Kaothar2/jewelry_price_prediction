@@ -17,36 +17,42 @@ def load_model():
 xgb_pipe = load_model()
 
 # Define expected categories based on training
-jewelry_types = ["bracelet", "brooch", "earring", "necklace", "pendant", "ring", "souvenir", "stud"]
+jewelry_types = [
+    "jewelry.earring", 
+    "jewelry.pendant", 
+    "jewelry.necklace", 
+    "jewelry.ring", 
+    "jewelry.brooch", 
+    "jewelry.bracelet", 
+    "jewelry.souvenir", 
+    "jewelry.stud"
+]
 genders = ["f", "m"]
 gemstones = ["rhodolite", "ruby", "sapphire", "sapphire_geothermal", "sitall", "spinel", "topaz", "tourmaline", "turquoise"]
 main_colors = ["red", "blue", "green", "black", "white"]
 main_metals = ["gold", "silver", "platinum"]
 
-# Define required columns (must match model training data)
-required_columns = ["Category", "Brand_ID", "Target_Gender", "Main_Color", "Main_Metal", "Main_Gem"]
-
-# Add placeholder values for missing columns like Brand_ID if they are not provided
-def fill_missing_columns(input_data, required_columns):
-    missing_columns = set(required_columns) - set(input_data.columns)
-    for col in missing_columns:
-        input_data[col] = "unknown"  # Fill missing columns with a default value
-    return input_data
+# Define required columns (matching model training data including Brand_ID)
+required_columns = ["Category", "Brand_ID", "Target_Gender", "Main_Gem", "Main_Color", "Main_Metal"]
 
 # Streamlit UI
 st.title("💎 Jewelry Price Prediction App")
 st.write("Enter jewelry details below to predict the price.")
 
 # User Inputs
-selected_jewelry = st.selectbox("Select Jewelry Type", jewelry_types)
+selected_jewelry = st.selectbox("Select Jewelry Type", jewelry_types)  # Updated category options
 selected_gender = st.radio("Select Gender", genders)
 selected_gemstone = st.selectbox("Select Gemstone", gemstones)
 selected_color = st.selectbox("Select Main Color", main_colors)
 selected_metal = st.selectbox("Select Main Metal", main_metals)
 
+# User input for Brand_ID (if needed for prediction)
+selected_brand_id = st.text_input("Enter Brand ID (optional)", "")
+
 # Create DataFrame for prediction (Ensure only the necessary columns are included)
 input_data = pd.DataFrame([{
-    "Category": selected_jewelry,
+    "Category": selected_jewelry,  # Match the category options
+    "Brand_ID": selected_brand_id,  # Include Brand_ID here
     "Target_Gender": selected_gender,
     "Main_Gem": selected_gemstone,
     "Main_Color": selected_color,
@@ -54,7 +60,7 @@ input_data = pd.DataFrame([{
 }])
 
 # Ensure the columns are in the correct order (matching what the model expects)
-input_data = fill_missing_columns(input_data, required_columns)
+input_data = input_data[required_columns]
 
 # Display the input data
 st.write("### Input Data:")
