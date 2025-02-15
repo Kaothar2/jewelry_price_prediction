@@ -13,20 +13,18 @@ def load_model():
         st.error("Model file not found. Ensure Xgboost_model.pkl is in the correct directory.")
         return None
 
-# Load the pipeline (Make sure it's a pipeline with encoders too, if needed)
+# Load the pipeline
 xgb_pipe = load_model()
 
-# Define expected categories based on training (with 'jewelry.' prefix)
-jewelry_types = ["jewelry.earring", "jewelry.pendant", "jewelry.necklace", "jewelry.ring", 
-                 "jewelry.brooch", "jewelry.bracelet", "jewelry.souvenir", "jewelry.stud"]
+# Define expected categories based on training
+jewelry_types = ["bracelet", "brooch", "earring", "necklace", "pendant", "ring", "souvenir", "stud"]
 genders = ["f", "m"]
 gemstones = ["rhodolite", "ruby", "sapphire", "sapphire_geothermal", "sitall", "spinel", "topaz", "tourmaline", "turquoise"]
 main_colors = ["red", "blue", "green", "black", "white"]
 main_metals = ["gold", "silver", "platinum"]
-brands = ["brand_1", "brand_2", "brand_3"]  # Replace with actual brands used in training
 
 # Define required columns (must match model training data)
-required_columns = ["Main_Color", "Main_Gem", "Main_Metal", "Brand_ID", "Target_Gender", "Category", "Weight"]
+required_columns = ["Category", "Target_Gender", "Main_Gem", "Main_Color", "Main_Metal"]
 
 # Streamlit UI
 st.title("💎 Jewelry Price Prediction App")
@@ -38,24 +36,18 @@ selected_gender = st.radio("Select Gender", genders)
 selected_gemstone = st.selectbox("Select Gemstone", gemstones)
 selected_color = st.selectbox("Select Main Color", main_colors)
 selected_metal = st.selectbox("Select Main Metal", main_metals)
-selected_brand = st.selectbox("Select Brand", brands)
-weight = st.number_input("Enter Weight (grams)", min_value=0.1, step=0.1)
 
-# Create DataFrame for prediction
+# Create DataFrame for prediction (Ensure only the necessary columns are included)
 input_data = pd.DataFrame([{
-    "Category": selected_jewelry,  # Already in the correct format ('jewelry.earring', etc.)
+    "Category": selected_jewelry,
     "Target_Gender": selected_gender,
     "Main_Gem": selected_gemstone,
     "Main_Color": selected_color,
-    "Main_Metal": selected_metal,
-    "Brand_ID": selected_brand,
-    "Weight": weight
+    "Main_Metal": selected_metal
 }])
 
-# Ensure all required columns exist
-for col in required_columns:
-    if col not in input_data.columns:
-        input_data[col] = None  # Handle missing columns as needed
+# Ensure the columns are in the correct order (matching what the model expects)
+input_data = input_data[required_columns]
 
 # Display the input data
 st.write("### Input Data:")
