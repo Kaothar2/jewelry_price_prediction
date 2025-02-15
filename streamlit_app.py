@@ -24,13 +24,13 @@ main_colors = ["red", "blue", "green", "black", "white"]
 main_metals = ["gold", "silver", "platinum"]
 
 # Define required columns (must match model training data)
-required_columns = ["Category", "Target_Gender", "Main_Gem", "Main_Color", "Main_Metal", "Brand_ID"]
+required_columns = ["Category", "Brand_ID", "Target_Gender", "Main_Color", "Main_Metal", "Main_Gem"]
 
 # Add placeholder values for missing columns like Brand_ID if they are not provided
 def fill_missing_columns(input_data, required_columns):
     missing_columns = set(required_columns) - set(input_data.columns)
     for col in missing_columns:
-        input_data[col] = "unknown"  # Or any placeholder value, e.g., "unknown", 0, or "NA"
+        input_data[col] = "unknown"  # Fill missing columns with a default value
     return input_data
 
 # Streamlit UI
