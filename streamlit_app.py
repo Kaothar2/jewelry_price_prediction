@@ -24,7 +24,14 @@ main_colors = ["red", "blue", "green", "black", "white"]
 main_metals = ["gold", "silver", "platinum"]
 
 # Define required columns (must match model training data)
-required_columns = ["Category", "Target_Gender", "Main_Gem", "Main_Color", "Main_Metal"]
+required_columns = ["Category", "Target_Gender", "Main_Gem", "Main_Color", "Main_Metal", "Brand_ID"]
+
+# Add placeholder values for missing columns like Brand_ID if they are not provided
+def fill_missing_columns(input_data, required_columns):
+    missing_columns = set(required_columns) - set(input_data.columns)
+    for col in missing_columns:
+        input_data[col] = "unknown"  # Or any placeholder value, e.g., "unknown", 0, or "NA"
+    return input_data
 
 # Streamlit UI
 st.title("💎 Jewelry Price Prediction App")
@@ -47,7 +54,7 @@ input_data = pd.DataFrame([{
 }])
 
 # Ensure the columns are in the correct order (matching what the model expects)
-input_data = input_data[required_columns]
+input_data = fill_missing_columns(input_data, required_columns)
 
 # Display the input data
 st.write("### Input Data:")
