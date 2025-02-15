@@ -16,8 +16,9 @@ def load_model():
 # Load the pipeline (Make sure it's a pipeline with encoders too, if needed)
 xgb_pipe = load_model()
 
-# Define expected categories based on training
-jewelry_types = ["bracelet", "brooch", "earring", "necklace", "pendant", "ring", "souvenir", "stud"]
+# Define expected categories based on training (with 'jewelry.' prefix)
+jewelry_types = ["jewelry.earring", "jewelry.pendant", "jewelry.necklace", "jewelry.ring", 
+                 "jewelry.brooch", "jewelry.bracelet", "jewelry.souvenir", "jewelry.stud"]
 genders = ["f", "m"]
 gemstones = ["rhodolite", "ruby", "sapphire", "sapphire_geothermal", "sitall", "spinel", "topaz", "tourmaline", "turquoise"]
 main_colors = ["red", "blue", "green", "black", "white"]
@@ -42,7 +43,7 @@ weight = st.number_input("Enter Weight (grams)", min_value=0.1, step=0.1)
 
 # Create DataFrame for prediction
 input_data = pd.DataFrame([{
-    "Category": selected_jewelry,
+    "Category": selected_jewelry,  # Already in the correct format ('jewelry.earring', etc.)
     "Target_Gender": selected_gender,
     "Main_Gem": selected_gemstone,
     "Main_Color": selected_color,
@@ -51,10 +52,10 @@ input_data = pd.DataFrame([{
     "Weight": weight
 }])
 
-# Handle missing or additional columns based on your model's requirements
+# Ensure all required columns exist
 for col in required_columns:
     if col not in input_data.columns:
-        input_data[col] = None  # Handle missing columns as needed (fill, encode, etc.)
+        input_data[col] = None  # Handle missing columns as needed
 
 # Display the input data
 st.write("### Input Data:")
@@ -64,7 +65,6 @@ st.dataframe(input_data)
 if st.button("Predict Price"):
     if xgb_pipe:
         try:
-            # Make sure input data is preprocessed if necessary (encoding, scaling, etc.)
             predicted_price = xgb_pipe.predict(input_data)[0]  # Ensure input format is correct
             st.success(f"💰 Predicted Jewelry Price: ${predicted_price:.2f}")
         except Exception as e:
