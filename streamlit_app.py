@@ -13,7 +13,7 @@ def load_model():
         st.error("Model file not found. Ensure Xgboost_model.pkl is in the correct directory.")
         return None
 
-# Load the pipeline
+# Load the pipeline (Make sure it's a pipeline with encoders too, if needed)
 xgb_pipe = load_model()
 
 # Define expected categories based on training
@@ -51,10 +51,10 @@ input_data = pd.DataFrame([{
     "Weight": weight
 }])
 
-# Ensure all required columns exist
+# Handle missing or additional columns based on your model's requirements
 for col in required_columns:
     if col not in input_data.columns:
-        input_data[col] = None  # Fill missing columns
+        input_data[col] = None  # Handle missing columns as needed (fill, encode, etc.)
 
 # Display the input data
 st.write("### Input Data:")
@@ -64,6 +64,7 @@ st.dataframe(input_data)
 if st.button("Predict Price"):
     if xgb_pipe:
         try:
+            # Make sure input data is preprocessed if necessary (encoding, scaling, etc.)
             predicted_price = xgb_pipe.predict(input_data)[0]  # Ensure input format is correct
             st.success(f"💰 Predicted Jewelry Price: ${predicted_price:.2f}")
         except Exception as e:
